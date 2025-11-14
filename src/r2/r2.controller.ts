@@ -19,7 +19,7 @@ export class R2Controller {
   constructor(private readonly r2Service: R2Service) {}
 
   /**
-   * 上傳檔案
+   * Upload file
    */
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -28,7 +28,7 @@ export class R2Controller {
     @Body('key') key?: string,
   ) {
     if (!file) {
-      throw new Error('檔案未提供');
+      throw new Error('File not provided');
     }
     const fileKey = key || file.originalname;
     const result = await this.r2Service.uploadFile(
@@ -38,13 +38,13 @@ export class R2Controller {
     );
 
     return {
-      message: '檔案上傳成功',
+      message: 'File uploaded successfully',
       ...result,
     };
   }
 
   /**
-   * 下載檔案
+   * Download file
    */
   @Get('download/*path')
   async downloadFile(@Param('path') key: string, @Res() res: Response) {
@@ -55,7 +55,7 @@ export class R2Controller {
   }
 
   /**
-   * 取得檔案（直接顯示）
+   * Get file (direct display)
    */
   @Get('file/*path')
   async getFile(@Param('path') key: string, @Res() res: Response) {
@@ -70,19 +70,19 @@ export class R2Controller {
   }
 
   /**
-   * 刪除檔案
+   * Delete file
    */
   @Delete('file/*path')
   async deleteFile(@Param('path') key: string) {
     const result = await this.r2Service.deleteFile(key);
     return {
-      message: '檔案刪除成功',
+      message: 'File deleted successfully',
       ...result,
     };
   }
 
   /**
-   * 列出檔案
+   * List files
    */
   @Get('list')
   async listFiles(
@@ -97,7 +97,7 @@ export class R2Controller {
   }
 
   /**
-   * 檢查檔案是否存在
+   * Check if file exists
    */
   @Get('exists/*path')
   async fileExists(@Param('path') key: string) {
@@ -106,7 +106,7 @@ export class R2Controller {
   }
 
   /**
-   * 取得預簽名 URL
+   * Get presigned URL
    */
   @Get('presigned-url/*path')
   async getPresignedUrl(
@@ -118,4 +118,3 @@ export class R2Controller {
     return { url, expiresIn: expires };
   }
 }
-

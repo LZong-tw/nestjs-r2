@@ -30,11 +30,11 @@ export class R2Service {
   }
 
   /**
-   * 上傳檔案到 R2
-   * @param key 檔案路徑/名稱
-   * @param body 檔案內容 (Buffer 或 Stream)
-   * @param contentType MIME 類型
-   * @returns 上傳結果
+   * Upload file to R2
+   * @param key File path/name
+   * @param body File content (Buffer or Stream)
+   * @param contentType MIME type
+   * @returns Upload result
    */
   async uploadFile(
     key: string,
@@ -52,15 +52,17 @@ export class R2Service {
       await this.s3Client.send(command);
 
       return { success: true, key };
-    } catch (error) {
-      throw new Error(`上傳檔案失敗: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to upload file: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
   /**
-   * 下載檔案從 R2
-   * @param key 檔案路徑/名稱
-   * @returns 檔案內容
+   * Download file from R2
+   * @param key File path/name
+   * @returns File content
    */
   async downloadFile(key: string): Promise<Buffer> {
     try {
@@ -79,15 +81,17 @@ export class R2Service {
       }
 
       return Buffer.concat(chunks);
-    } catch (error) {
-      throw new Error(`下載檔案失敗: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to download file: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
   /**
-   * 刪除檔案
-   * @param key 檔案路徑/名稱
-   * @returns 刪除結果
+   * Delete file
+   * @param key File path/name
+   * @returns Delete result
    */
   async deleteFile(key: string): Promise<{ success: boolean; key: string }> {
     try {
@@ -99,16 +103,18 @@ export class R2Service {
       await this.s3Client.send(command);
 
       return { success: true, key };
-    } catch (error) {
-      throw new Error(`刪除檔案失敗: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to delete file: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
   /**
-   * 列出檔案
-   * @param prefix 路徑前綴（可選）
-   * @param maxKeys 最大返回數量（可選）
-   * @returns 檔案列表
+   * List files
+   * @param prefix Path prefix (optional)
+   * @param maxKeys Maximum number of results (optional)
+   * @returns File list
    */
   async listFiles(prefix?: string, maxKeys?: number) {
     try {
@@ -129,15 +135,17 @@ export class R2Service {
           })) || [],
         isTruncated: response.IsTruncated,
       };
-    } catch (error) {
-      throw new Error(`列出檔案失敗: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to list files: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
   /**
-   * 檢查檔案是否存在
-   * @param key 檔案路徑/名稱
-   * @returns 檔案資訊或 null
+   * Check if file exists
+   * @param key File path/name
+   * @returns File information or null
    */
   async fileExists(key: string) {
     try {
@@ -156,20 +164,28 @@ export class R2Service {
         etag: response.ETag,
       };
     } catch (error: any) {
-      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+      if (
+        error?.name === 'NotFound' ||
+        error?.$metadata?.httpStatusCode === 404
+      ) {
         return { exists: false };
       }
-      throw new Error(`檢查檔案失敗: ${error.message}`);
+      throw new Error(
+        `Failed to check file: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
   /**
-   * 產生預簽名 URL（用於臨時存取）
-   * @param key 檔案路徑/名稱
-   * @param expiresIn 過期時間（秒），預設 3600
-   * @returns 預簽名 URL
+   * Generate presigned URL (for temporary access)
+   * @param key File path/name
+   * @param expiresIn Expiration time in seconds, default 3600
+   * @returns Presigned URL
    */
-  async getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  async getPresignedUrl(
+    key: string,
+    expiresIn: number = 3600,
+  ): Promise<string> {
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
@@ -179,9 +195,10 @@ export class R2Service {
       const url = await getSignedUrl(this.s3Client, command, { expiresIn });
 
       return url;
-    } catch (error) {
-      throw new Error(`產生預簽名 URL 失敗: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to generate presigned URL: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 }
-
