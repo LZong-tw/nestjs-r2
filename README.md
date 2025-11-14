@@ -23,97 +23,224 @@
 
 ## Description
 
-NestJS 專案，用於存取 CloudFlare R2 物件儲存服務。
+NestJS project for accessing CloudFlare R2 object storage service. This project provides a RESTful API to interact with CloudFlare R2 buckets, including file upload, download, deletion, listing, and presigned URL generation.
 
-## 專案設定
+## Project Setup
 
-### 安裝依賴
+### Installation
 
-此專案使用 `pnpm` 作為套件管理器：
+This project uses `pnpm` as the package manager:
 
 ```bash
 $ pnpm install
 ```
 
-### 環境變數設定
+### Environment Variables
 
-複製 `.env.example` 並建立 `.env` 檔案，填入您的 CloudFlare R2 設定：
+Copy `.env.example` and create a `.env` file with your CloudFlare R2 configuration:
 
 ```bash
 $ cp .env.example .env
 ```
 
-編輯 `.env` 檔案，填入以下資訊：
-- `R2_ENDPOINT`: CloudFlare R2 端點 URL
-- `R2_ACCESS_KEY_ID`: R2 存取金鑰 ID
-- `R2_SECRET_ACCESS_KEY`: R2 秘密存取金鑰
-- `R2_BUCKET_NAME`: R2 儲存桶名稱
-- `PORT`: 應用程式連接埠（預設：3000）
+Edit the `.env` file and fill in the following information:
+- `R2_ENDPOINT`: CloudFlare R2 endpoint URL
+- `R2_ACCESS_KEY_ID`: R2 access key ID
+- `R2_SECRET_ACCESS_KEY`: R2 secret access key
+- `R2_BUCKET_NAME`: R2 bucket name
+- `PORT`: Application port (default: 3000)
 
-## 執行專案
+## Running the Project
 
 ```bash
-# 開發模式
+# development mode
 $ pnpm run start:dev
 
-# 生產模式
+# production mode
 $ pnpm run start:prod
 
-# 一般模式
+# standard mode
 $ pnpm run start
 ```
 
-## API 端點
+## API Endpoints
 
-### 上傳檔案
+### Upload File
 ```
 POST /r2/upload
 Content-Type: multipart/form-data
-Body: file (檔案), key (可選，檔案路徑/名稱)
+Body: file (file), key (optional, file path/name)
 ```
 
-### 下載檔案
-```
-GET /r2/download/:key
-```
-
-### 取得檔案（直接顯示）
-```
-GET /r2/file/:key
+**Example:**
+```bash
+curl -X POST http://localhost:3000/r2/upload \
+  -F "file=@example.txt" \
+  -F "key=test/example.txt"
 ```
 
-### 刪除檔案
+### Download File
 ```
-DELETE /r2/file/:key
+GET /r2/download/*path
 ```
 
-### 列出檔案
+**Example:**
+```bash
+curl http://localhost:3000/r2/download/test/example.txt -o downloaded.txt
+```
+
+### Get File (Direct Display)
+```
+GET /r2/file/*path
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/r2/file/test/example.txt
+```
+
+### Delete File
+```
+DELETE /r2/file/*path
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:3000/r2/file/test/example.txt
+```
+
+### List Files
 ```
 GET /r2/list?prefix=<prefix>&maxKeys=<maxKeys>
 ```
 
-### 檢查檔案是否存在
-```
-GET /r2/exists/:key
-```
-
-### 取得預簽名 URL
-```
-GET /r2/presigned-url/:key?expiresIn=<seconds>
+**Example:**
+```bash
+curl http://localhost:3000/r2/list?prefix=test/&maxKeys=10
 ```
 
-## Run tests
+### Check File Exists
+```
+GET /r2/exists/*path
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/r2/exists/test/example.txt
+```
+
+### Get Presigned URL
+```
+GET /r2/presigned-url/*path?expiresIn=<seconds>
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/r2/presigned-url/test/example.txt?expiresIn=3600
+```
+
+## Testing
+
+### Unit Tests
 
 ```bash
 # unit tests
-$ npm run test
+$ pnpm run test
 
 # e2e tests
-$ npm run test:e2e
+$ pnpm run test:e2e
 
 # test coverage
-$ npm run test:cov
+$ pnpm run test:cov
 ```
+
+### Manual Testing Workflow
+
+#### Prerequisites
+
+1. Ensure the development server is running:
+   ```bash
+   $ pnpm run start:dev
+   ```
+
+2. Verify the server is accessible:
+   ```bash
+   $ curl http://localhost:3000
+   ```
+
+3. Ensure your `.env` file is configured with valid CloudFlare R2 credentials.
+
+#### Testing File Upload
+
+1. **Create a test file** (optional):
+   ```bash
+   $ echo "This is a test file for CloudFlare R2 upload" > test-file.txt
+   ```
+
+2. **Upload a file**:
+   ```bash
+   # Using curl
+   $ curl -X POST http://localhost:3000/r2/upload \
+     -F "file=@test-file.txt" \
+     -F "key=test/test-file.txt"
+   
+   # Or use the test script (PowerShell)
+   $ .\test-upload.ps1
+   
+   # Or use the test script (Bash)
+   $ chmod +x test-upload.sh
+   $ ./test-upload.sh
+   ```
+
+3. **Expected response**:
+   ```json
+   {
+     "message": "檔案上傳成功",
+     "success": true,
+     "key": "test/test-file.txt"
+   }
+   ```
+   
+   Note: The message may be in Chinese based on the controller implementation. A successful upload will return `success: true` with the file key.
+
+#### Testing Other Endpoints
+
+1. **List files**:
+   ```bash
+   $ curl http://localhost:3000/r2/list?prefix=test/
+   ```
+
+2. **Check if file exists**:
+   ```bash
+   $ curl http://localhost:3000/r2/exists/test/test-file.txt
+   ```
+
+3. **Get file**:
+   ```bash
+   $ curl http://localhost:3000/r2/file/test/test-file.txt
+   ```
+
+4. **Get presigned URL**:
+   ```bash
+   $ curl http://localhost:3000/r2/presigned-url/test/test-file.txt?expiresIn=3600
+   ```
+
+5. **Download file**:
+   ```bash
+   $ curl http://localhost:3000/r2/download/test/test-file.txt -o downloaded.txt
+   ```
+
+6. **Delete file**:
+   ```bash
+   $ curl -X DELETE http://localhost:3000/r2/file/test/test-file.txt
+   ```
+
+#### Troubleshooting
+
+- **Connection refused**: Ensure the server is running on port 3000
+- **Authentication errors**: Verify your R2 credentials in `.env` file
+- **File not found**: Check if the file key/path is correct
+- **Upload fails**: Verify R2 bucket name and permissions are correct
 
 ## Deployment
 

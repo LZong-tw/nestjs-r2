@@ -46,8 +46,8 @@ export class R2Controller {
   /**
    * 下載檔案
    */
-  @Get('download/:key(*)')
-  async downloadFile(@Param('key') key: string, @Res() res: Response) {
+  @Get('download/*path')
+  async downloadFile(@Param('path') key: string, @Res() res: Response) {
     const file = await this.r2Service.downloadFile(key);
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="${key}"`);
@@ -57,8 +57,8 @@ export class R2Controller {
   /**
    * 取得檔案（直接顯示）
    */
-  @Get('file/:key(*)')
-  async getFile(@Param('key') key: string, @Res() res: Response) {
+  @Get('file/*path')
+  async getFile(@Param('path') key: string, @Res() res: Response) {
     const file = await this.r2Service.downloadFile(key);
     const fileInfo = await this.r2Service.fileExists(key);
 
@@ -72,8 +72,8 @@ export class R2Controller {
   /**
    * 刪除檔案
    */
-  @Delete('file/:key(*)')
-  async deleteFile(@Param('key') key: string) {
+  @Delete('file/*path')
+  async deleteFile(@Param('path') key: string) {
     const result = await this.r2Service.deleteFile(key);
     return {
       message: '檔案刪除成功',
@@ -99,8 +99,8 @@ export class R2Controller {
   /**
    * 檢查檔案是否存在
    */
-  @Get('exists/:key(*)')
-  async fileExists(@Param('key') key: string) {
+  @Get('exists/*path')
+  async fileExists(@Param('path') key: string) {
     const result = await this.r2Service.fileExists(key);
     return result;
   }
@@ -108,9 +108,9 @@ export class R2Controller {
   /**
    * 取得預簽名 URL
    */
-  @Get('presigned-url/:key(*)')
+  @Get('presigned-url/*path')
   async getPresignedUrl(
-    @Param('key') key: string,
+    @Param('path') key: string,
     @Query('expiresIn') expiresIn?: string,
   ) {
     const expires = expiresIn ? parseInt(expiresIn, 10) : 3600;
